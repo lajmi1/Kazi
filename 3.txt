@@ -1,0 +1,127 @@
+hadoop.root.logger=WARN, console
+log4j.rootLogger = WARN, console
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.target=System.out
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
+JB
+Jey B1:28 PM
+package hbaseCls;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import java.io.IOException;
+public class hbaseCreateTable {
+public static void main(String[] args) throws IOException {
+
+    Configuration conf = HBaseConfiguration.create();
+    conf.set("hbase.zookeeper.quorum", "ec2-52-202-97-40.compute-1.amazonaws.com,ec2-52-87-242-101.compute-1.amazonaws.com,ec2-34-238-152-106.compute-1.amazonaws.com");
+    conf.set("hbase.zookeeper.property.clientPort", "2181");
+    Connection connection = ConnectionFactory.createConnection(conf);
+
+        Admin admin = connection.getAdmin();
+
+        HTableDescriptor tableName = new HTableDescriptor(TableName.valueOf("orders_api"));
+
+        tableName.addFamily(new HColumnDescriptor("details"));
+        tableName.addFamily(new HColumnDescriptor("products"));
+
+        if (!admin.tableExists(tableName.getTableName())) {
+            System.out.print("Creating the orders table. ");
+
+            admin.createTable(tableName);
+
+            System.out.println("Done.");
+        } else {
+            System.out.println("Warning ! Table already exists");
+        }
+        
+        connection.close();
+}
+None
+}
+JB
+Jey B1:36 PM
+52.202.97.40 ec2-52-202-97-40.compute-1.amazonaws.com
+54.234.255.240 ec2-54-234-255-240.compute-1.amazonaws.com
+52.87.242.101 ec2-52-87-242-101.compute-1.amazonaws.com
+34.238.152.106 ec2-34-238-152-106.compute-1.amazonaws.com
+34.205.143.64 ec2-34-205-143-64.compute-1.amazonaws.com
+JB
+Jey B2:37 PM
+drop table default.orders_internal
+CREATE EXTERNAL TABLE default.orders_hive(
+row_id int,
+order_id string,
+product_id string,
+order_date date,
+customer_id string,
+category string,
+sub_category string,
+product_name string,
+sales double,
+quantity int,
+discount int,
+phone_no string,
+profit float,
+created_by string)
+ROW FORMAT SERDE
+'org.apache.hadoop.hive.hbase.HBaseSerDe'
+STORED BY
+'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES (
+'hbase.columns.mapping'=':key,order_details:order_id,order_details:product_id, order_details:order_date ,order_details:customer_id, order_details:category, order_details:sub_category,order_details:product_name, order_details:sales, order_details:quantity, order_details:discount, order_details:phone_no, order_details:profit,order_details:created_by',
+'serialization.format'='1')
+TBLPROPERTIES (
+'hbase.table.name'='orders_hive'
+) ;
+set hbase.mapred.output.outputtable=orders_hive;
+INSERT into table default.orders_hive VALUES ('2020','CA-2016-152156','FUR-CH-10000454','NULL','CG-12520','Furniture','Chairs','"Hon Deluxe Fabric Upholstered Stacking Chairs','NULL','731','3','0','219.5820007','uid_jey')
+--- Load Data Dynamically using Hive
+INSERT OVERWRITE TABLE default.orders_hive Select * from
+bigdatahaoop.orders_internal
+--- Creating Table in HBASE
+CREATE  TABLE default.orders_hive_create(
+row_id int,
+order_id string,
+product_id string,
+order_date date,
+customer_id string,
+category string,
+sub_category string,
+product_name string,
+sales double,
+quantity int,
+discount int,
+phone_no string,
+profit float,
+created_by string)
+ROW FORMAT SERDE
+'org.apache.hadoop.hive.hbase.HBaseSerDe'
+STORED BY
+'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES (
+'hbase.columns.mapping'=':key,order_details:order_id,order_details:product_id, order_details:order_date ,order_details:customer_id, order_details:category, order_details:sub_category,order_details:product_name, order_details:sales, order_details:quantity, order_details:discount, order_details:phone_no, order_details:profit,order_details:created_by',
+'serialization.format'='1')
+TBLPROPERTIES (
+'hbase.table.name'='orders_hive_create'
+) ;
+INSERT OVERWRITE TABLE default.orders_hive_create Select * from
+bigdatahaoop.orders_internal
+
+DT
+MP
+P
+T
+AN
+N
+S
+VP
+
+
+
+
+ 
